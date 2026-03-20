@@ -12,7 +12,7 @@ const { width } = Dimensions.get('window');
 
 function formatDate(dateStr: string) {
   return new Date(dateStr + 'T00:00:00').toLocaleDateString('en-US', {
-    weekday: 'short', month: 'long', day: 'numeric',
+    month: 'short', day: 'numeric',
   });
 }
 
@@ -65,27 +65,41 @@ export default function TripDetailScreen() {
 
         {/* Trip Meta */}
         <View style={styles.metaContainer}>
-          <View style={styles.metaItem}>
-            <Ionicons name="calendar-outline" size={20} color={Colors.dark.primary} />
-            <View>
-              <Text style={styles.metaLabel}>Dates</Text>
-              <Text style={styles.metaValue}>{formatDate(trip.startDate)} – {formatDate(trip.endDate)}</Text>
+          <View style={styles.metaRow}>
+            <View style={styles.metaItem}>
+              <View style={styles.metaIconContainer}>
+                <Ionicons name="calendar-outline" size={18} color={Colors.dark.primary} />
+              </View>
+              <View style={styles.metaTextContainer}>
+                <Text style={styles.metaLabel}>Dates</Text>
+                <Text style={styles.metaValue} numberOfLines={1}>
+                  {formatDate(trip.startDate)} – {formatDate(trip.endDate)}
+                </Text>
+              </View>
             </View>
-          </View>
-          <View style={styles.metaDivider} />
-          <View style={styles.metaItem}>
-            <Ionicons name="time-outline" size={20} color={Colors.dark.secondary} />
-            <View>
-              <Text style={styles.metaLabel}>Duration</Text>
-              <Text style={styles.metaValue}>{duration} days</Text>
+            
+            <View style={styles.metaDivider} />
+            
+            <View style={styles.metaItem}>
+              <View style={styles.metaIconContainer}>
+                <Ionicons name="time-outline" size={18} color={Colors.dark.secondary} />
+              </View>
+              <View style={styles.metaTextContainer}>
+                <Text style={styles.metaLabel}>Duration</Text>
+                <Text style={styles.metaValue}>{duration} days</Text>
+              </View>
             </View>
-          </View>
-          <View style={styles.metaDivider} />
-          <View style={styles.metaItem}>
-            <Ionicons name="people-outline" size={20} color={Colors.dark.accent} />
-            <View>
-              <Text style={styles.metaLabel}>Travelers</Text>
-              <Text style={styles.metaValue}>{trip.travelers}</Text>
+            
+            <View style={styles.metaDivider} />
+            
+            <View style={styles.metaItem}>
+              <View style={styles.metaIconContainer}>
+                <Ionicons name="people-outline" size={18} color={Colors.dark.accent} />
+              </View>
+              <View style={styles.metaTextContainer}>
+                <Text style={styles.metaLabel}>Travelers</Text>
+                <Text style={styles.metaValue}>{trip.travelers}</Text>
+              </View>
             </View>
           </View>
         </View>
@@ -140,12 +154,22 @@ export default function TripDetailScreen() {
                   </View>
                 )}
                 {currentDayData.activities?.map((activity, i) => (
-                  <View key={i} style={styles.activityCard}>
+                  <TouchableOpacity 
+                    key={i} 
+                    style={styles.activityCard}
+                    onPress={() => router.push({
+                      pathname: '/event/[id]',
+                      params: { id: activity.id, tripId: trip.id }
+                    })}
+                  >
                     <View style={styles.activityTime}>
                       <Text style={styles.activityTimeText}>{activity.time}</Text>
                     </View>
                     <View style={styles.activityInfo}>
-                      <Text style={styles.activityTitle}>{activity.title}</Text>
+                      <View style={styles.activityHeader}>
+                        <Text style={styles.activityTitle}>{activity.title}</Text>
+                        <Ionicons name="chevron-forward" size={14} color={Colors.dark.textMuted} />
+                      </View>
                       {activity.location && (
                         <Text style={styles.activityLocation}>{activity.location}</Text>
                       )}
@@ -154,7 +178,7 @@ export default function TripDetailScreen() {
                       )}
                     </View>
                     <View style={[styles.activityDot, { backgroundColor: getActivityColor(activity.type) }]} />
-                  </View>
+                  </TouchableOpacity>
                 ))}
               </View>
             )}
@@ -210,13 +234,28 @@ const styles = StyleSheet.create({
   heroTitle: { fontSize: 30, fontWeight: '800', color: '#fff' },
   heroCountry: { fontSize: 16, color: 'rgba(255,255,255,0.8)', marginTop: 4 },
   metaContainer: {
-    flexDirection: 'row', backgroundColor: Colors.dark.surface,
-    margin: 16, borderRadius: 16, padding: 16,
+    backgroundColor: Colors.dark.surface,
+    margin: 16, borderRadius: 16, padding: 12,
   },
-  metaItem: { flex: 1, flexDirection: 'row', alignItems: 'center', gap: 10 },
-  metaDivider: { width: 1, backgroundColor: Colors.dark.border },
-  metaLabel: { fontSize: 11, color: Colors.dark.textMuted },
-  metaValue: { fontSize: 13, color: Colors.dark.text, fontWeight: '600' },
+  metaRow: {
+    flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between',
+  },
+  metaItem: { 
+    flex: 1, 
+    flexDirection: 'column', 
+    alignItems: 'center', 
+    justifyContent: 'center',
+    paddingHorizontal: 4,
+  },
+  metaIconContainer: {
+    marginBottom: 4,
+  },
+  metaTextContainer: {
+    alignItems: 'center',
+  },
+  metaDivider: { width: 1, height: 30, backgroundColor: Colors.dark.border },
+  metaLabel: { fontSize: 10, color: Colors.dark.textMuted, marginBottom: 2 },
+  metaValue: { fontSize: 12, color: Colors.dark.text, fontWeight: '700', textAlign: 'center' },
   section: { paddingHorizontal: 16, marginBottom: 24 },
   sectionTitle: { fontSize: 18, fontWeight: '700', color: Colors.dark.text, marginBottom: 12 },
   description: { fontSize: 14, color: Colors.dark.textSecondary, lineHeight: 22 },
@@ -248,6 +287,7 @@ const styles = StyleSheet.create({
   activityTime: { minWidth: 50 },
   activityTimeText: { fontSize: 12, color: Colors.dark.primary, fontWeight: '600' },
   activityInfo: { flex: 1 },
+  activityHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
   activityTitle: { fontSize: 14, fontWeight: '600', color: Colors.dark.text },
   activityLocation: { fontSize: 12, color: Colors.dark.textSecondary, marginTop: 2 },
   activityNotes: { fontSize: 12, color: Colors.dark.textMuted, marginTop: 4, fontStyle: 'italic' },

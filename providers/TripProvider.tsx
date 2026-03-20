@@ -1,9 +1,9 @@
 import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { Trip } from '@/types/trip';
+import { Trip, Activity } from '@/types/trip';
 import { sampleTrips } from '@/mocks/trips';
 
-const CURRENT_TRIPS_VERSION = '3';
+const CURRENT_TRIPS_VERSION = '4';
 const TRIPS_STORAGE_KEY = `@wandr_trips_v${CURRENT_TRIPS_VERSION}`;
 
 interface TripContextType {
@@ -14,6 +14,7 @@ interface TripContextType {
   updateTrip: (trip: Trip) => void;
   deleteTrip: (id: string) => void;
   getTrip: (id: string) => Trip | undefined;
+  updateActivity: (tripId: string, activityId: string, updates: Partial<Activity>) => void;
   isLoading: boolean;
 }
 
@@ -71,6 +72,24 @@ export function TripProvider({ children }: { children: ReactNode }) {
 
   const getTrip = (id: string) => trips.find(t => t.id === id);
 
+  const updateActivity = (tripId: string, activityId: string, updates: Partial<Activity>) => {
+    const newTrips = trips.map(trip => {
+      if (trip.id !== tripId) return trip;
+      return {
+        ...trip,
+        itinerary: trip.itinerary.map(day => ({
+          ...day,
+          activities: day.activities.map(activity => {
+            if (activity.id !== activityId) return activity;
+            return { ...activity, ...updates };
+          }),
+        })),
+      };
+    });
+    setTrips(newTrips);
+    saveTrips(newTrips);
+  };
+
   const upcomingTrips = trips
     .filter(t => t.status === 'upcoming')
     .sort((a, b) => new Date(a.startDate).getTime() - new Date(b.startDate).getTime());
@@ -86,6 +105,7 @@ export function TripProvider({ children }: { children: ReactNode }) {
       updateTrip,
       deleteTrip,
       getTrip,
+      updateActivity,
       isLoading,
     }}>
       {children}
